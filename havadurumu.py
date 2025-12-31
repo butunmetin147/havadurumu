@@ -8,50 +8,20 @@ from githublogin import username, password
 # ------------------------
 # Türkiye Bölgeleri ve İller
 # ------------------------
-regions = {
-    "Marmara Bölgesi": [
-        "İstanbul","Edirne","Kırklareli","Tekirdağ","Kocaeli","Sakarya",
-        "Bursa","Balıkesir","Çanakkale","Yalova","Bilecik"
-    ],
-
-    "Ege Bölgesi": [
-        "İzmir","Aydın","Muğla","Manisa","Denizli","Uşak",
-        "Kütahya","Afyonkarahisar"
-    ],
-
-    "Akdeniz Bölgesi": [
-        "Antalya","Adana","Mersin","Hatay","Isparta","Burdur",
-        "Kahramanmaraş","Osmaniye"
-    ],
-
-    "Karadeniz Bölgesi": [
-        "Trabzon","Rize","Artvin","Giresun","Ordu","Samsun",
-        "Sinop","Kastamonu","Bartın","Zonguldak","Karabük",
-        "Bolu","Düzce","Amasya","Tokat","Çorum","Bayburt","Gümüşhane"
-    ],
-
-    "İç Anadolu Bölgesi": [
-        "Ankara","Konya","Kayseri","Sivas","Yozgat","Kırıkkale",
-        "Kırşehir","Aksaray","Niğde","Nevşehir","Karaman","Çankırı","Eskişehir"
-    ],
-
-    "Doğu Anadolu Bölgesi": [
-        "Erzurum","Kars","Ardahan","Ağrı","Iğdır","Van",
-        "Bitlis","Muş","Bingöl","Tunceli","Elazığ","Malatya",
-        "Erzincan","Hakkari"
-    ],
-
-    "Güneydoğu Anadolu Bölgesi": [
-        "Diyarbakır","Şanlıurfa","Mardin","Batman","Siirt",
-        "Şırnak","Gaziantep","Adıyaman","Kilis"
-    ]
-}
+regions = { "Marmara Bölgesi": ["İstanbul","Edirne","Kırklareli","Tekirdağ","Kocaeli","Sakarya","Bursa","Balıkesir","Çanakkale","Yalova"], 
+           "Ege Bölgesi": ["İzmir","Aydın","Muğla","Manisa","Denizli","Uşak","Kütahya","Afyonkarahisar"], 
+           "Akdeniz Bölgesi": ["Antalya","Adana","Mersin","Hatay","Isparta","Kahramanmaraş","Osmaniye"], 
+           "Karadeniz Bölgesi": ["Trabzon","Rize","Samsun","Ordu","Giresun","Zonguldak","Bartın","Sinop"], 
+           "İç Anadolu Bölgesi": ["Ankara","Konya","Kayseri","Sivas","Yozgat","Kırıkkale","Kırşehir","Aksaray","Niğde","Nevşehir"], 
+           "Doğu Anadolu Bölgesi": ["Erzurum","Kars","Ağrı","Van","Malatya","Elazığ","Tunceli","Bingöl"], 
+           "Güneydoğu Anadolu Bölgesi": ["Diyarbakır","Şanlıurfa","Mardin","Batman","Siirt","Şırnak","Gaziantep"] 
+          }
 
 
 # ------------------------
 # OpenWeatherMap API Key
 # ------------------------
-API_KEY = "51ec80ac4efd3d17205937399de50041"
+API_KEY = "*******"
 
 
 # Global olarak
@@ -160,10 +130,11 @@ def create_image(region_name):
     y = 400
     for city in regions[region_name]:
         desc, tmax, tmin, pop_percent = get_weather(city)
+        time.sleep(1)
         icon = weather_icon(desc)
 
         # Metin (şehir + sıcaklık + açıklama)
-        text = f"{city}: {int(tmax)}°|{int(tmin)}°  {desc} {pop_percent}"
+        text = f"{city}: {int(tmax)}°|{int(tmin)}°  {desc} %{pop_percent}"
 
         # Yazıyı çiz (siyah kenarlı, beyaz içli)
         bbox = draw.textbbox((0, 0), text, font=font_city)
@@ -220,7 +191,7 @@ def job():
 # ------------------------
 schedule.every().day.at("10:00").do(job)
 
-print("📅 Hava durumu paylaşım botu başlatıldı. Her gün 05:00'de paylaşacak.")
+print("📅 Hava durumu paylaşım botu başlatıldı. Her gün 10:00'da paylaşacak.")
 
 while True:
     schedule.run_pending()

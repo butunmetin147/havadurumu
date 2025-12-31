@@ -9,14 +9,44 @@ from githublogin import username, password
 # Türkiye Bölgeleri ve İller
 # ------------------------
 regions = {
-    "Marmara Bölgesi": ["İstanbul","Edirne","Kırklareli","Tekirdağ","Kocaeli","Sakarya","Bursa","Balıkesir","Çanakkale","Yalova"],
-    "Ege Bölgesi": ["İzmir","Aydın","Muğla","Manisa","Denizli","Uşak","Kütahya","Afyonkarahisar"],
-    "Akdeniz Bölgesi": ["Antalya","Adana","Mersin","Hatay","Isparta","Kahramanmaraş","Osmaniye"],
-    "Karadeniz Bölgesi": ["Trabzon","Rize","Samsun","Ordu","Giresun","Zonguldak","Bartın","Sinop"],
-    "İç Anadolu Bölgesi": ["Ankara","Konya","Kayseri","Sivas","Yozgat","Kırıkkale","Kırşehir","Aksaray","Niğde","Nevşehir"],
-    "Doğu Anadolu Bölgesi": ["Erzurum","Kars","Ağrı","Van","Malatya","Elazığ","Tunceli","Bingöl"],
-    "Güneydoğu Anadolu Bölgesi": ["Diyarbakır","Şanlıurfa","Mardin","Batman","Siirt","Şırnak","Gaziantep"]
+    "Marmara Bölgesi": [
+        "İstanbul","Edirne","Kırklareli","Tekirdağ","Kocaeli","Sakarya",
+        "Bursa","Balıkesir","Çanakkale","Yalova","Bilecik"
+    ],
+
+    "Ege Bölgesi": [
+        "İzmir","Aydın","Muğla","Manisa","Denizli","Uşak",
+        "Kütahya","Afyonkarahisar"
+    ],
+
+    "Akdeniz Bölgesi": [
+        "Antalya","Adana","Mersin","Hatay","Isparta","Burdur",
+        "Kahramanmaraş","Osmaniye"
+    ],
+
+    "Karadeniz Bölgesi": [
+        "Trabzon","Rize","Artvin","Giresun","Ordu","Samsun",
+        "Sinop","Kastamonu","Bartın","Zonguldak","Karabük",
+        "Bolu","Düzce","Amasya","Tokat","Çorum","Bayburt","Gümüşhane"
+    ],
+
+    "İç Anadolu Bölgesi": [
+        "Ankara","Konya","Kayseri","Sivas","Yozgat","Kırıkkale",
+        "Kırşehir","Aksaray","Niğde","Nevşehir","Karaman","Çankırı","Eskişehir"
+    ],
+
+    "Doğu Anadolu Bölgesi": [
+        "Erzurum","Kars","Ardahan","Ağrı","Iğdır","Van",
+        "Bitlis","Muş","Bingöl","Tunceli","Elazığ","Malatya",
+        "Erzincan","Hakkari"
+    ],
+
+    "Güneydoğu Anadolu Bölgesi": [
+        "Diyarbakır","Şanlıurfa","Mardin","Batman","Siirt",
+        "Şırnak","Gaziantep","Adıyaman","Kilis"
+    ]
 }
+
 
 # ------------------------
 # OpenWeatherMap API Key
@@ -32,23 +62,42 @@ gun_adlari = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartes
 # ------------------------
 # Şehre göre yarının hava durumu alma fonksiyonu
 # ------------------------
+from collections import Counter
+
 def get_weather(city):
     url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&units=metric&lang=tr&appid={API_KEY}"
     try:
         r = requests.get(url, timeout=10)
         data = r.json()
+
         tomorrow = (datetime.now() + timedelta(days=1)).date()
+
+        temps_max = []
+        temps_min = []
+        descriptions = []
+        pops = []  # yağış ihtimali
+
         for item in data["list"]:
             dt = datetime.fromtimestamp(item["dt"]).date()
             if dt == tomorrow:
-                desc = item["weather"][0]["description"]
-                tmax = item["main"]["temp_max"]
-                tmin = item["main"]["temp_min"]
-                return desc, tmax, tmin
-        return "Bilinmiyor", 0, 0
+                temps_max.append(item["main"]["temp_max"])
+                temps_min.append(item["main"]["temp_min"])
+                descriptions.append(item["weather"][0]["description"])
+                pops.append(item.get("pop", 0))
+
+        if not temps_max:
+            return "Bilinmiyor", 0, 0, 0
+
+        desc = Counter(descriptions).most_common(1)[0][0]
+        pop_percent = int(max(pops) * 100)
+
+        return desc, max(temps_max), min(temps_min), pop_percent
+
     except Exception as e:
         print(f"⚠️ {city} için veri alınamadı: {e}")
-        return "Bilinmiyor", 0, 0
+        return "Bilinmiyor", 0, 0, 0
+
+
 
 # ------------------------
 # Hava durumu açıklamasına göre emoji belirleme
@@ -110,20 +159,20 @@ def create_image(region_name):
     # Şehir listesi
     y = 400
     for city in regions[region_name]:
-        desc, tmax, tmin = get_weather(city)
+        desc, tmax, tmin, pop_percent = get_weather(city)
         icon = weather_icon(desc)
 
         # Metin (şehir + sıcaklık + açıklama)
-        text = f"{city}: {int(tmax)}°  {desc}"
+        text = f"{city}: {int(tmax)}°|{int(tmin)}°  {desc} {pop_percent}"
 
         # Yazıyı çiz (siyah kenarlı, beyaz içli)
         bbox = draw.textbbox((0, 0), text, font=font_city)
-        x = 120
+        x = 100
         draw_text_with_outline(draw, (x, y), text, font=font_city)
 
         # Emoji (ayrı çiziliyor)
         emoji_bbox = draw.textbbox((0, 0), icon, font=font_emoji)
-        emoji_x = width - 180  # Sağ tarafa hizala
+        emoji_x = width - 150  # Sağ tarafa hizala
         draw.text((emoji_x, y), icon, font=font_emoji, fill="white")
         #alt çizgi
         draw.line(

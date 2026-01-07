@@ -174,6 +174,17 @@ def upload_story(image_path, region_name):
     cl.photo_upload_to_story(image_path, caption)
 
 
+import random
+
+def random_time_between_9_12():
+    hour = random.randint(9, 11)   # 9, 10 veya 11
+    minute = random.randint(0, 59)
+    return f"{hour:02d}:{minute:02d}"
+def schedule_next_job():
+    random_time = random_time_between_9_12()
+    schedule.clear("weather_job")
+    schedule.every().day.at(random_time).do(job).tag("weather_job")
+    print(f"⏰ Bugünkü paylaşım saati: {random_time}")
 
 # ------------------------
 # Otomatik paylaşım
@@ -185,11 +196,13 @@ def job():
         upload_story(image_path, region)
         print(f"✅ {region} paylaşıldı.")
         time.sleep(3)
-
+           # Ertesi gün için yeni saat belirle
+    schedule_next_job()
 # ------------------------
 # Zamanlama
 # ------------------------
-schedule.every().day.at("10:00").do(job)
+schedule_next_job()
+
 
 print("📅 Hava durumu paylaşım botu başlatıldı. Her gün 10:00'da paylaşacak.")
 
